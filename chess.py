@@ -4,6 +4,7 @@ import math
 import sys
 import time
 from camera_manager import CameraManager
+import pyautogui as pag
 
 # Initialize Pygame
 pygame.init()
@@ -263,7 +264,7 @@ def main():
                 running = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pos = event.pos
+                pos = mid_point
                 if event.button in (4, 5):
                     if 0 <= pos[0] < capture_box.get_width() and 140 <= pos[1] < 140 + capture_box.get_height():
                         if event.button == 4:
@@ -291,10 +292,10 @@ def main():
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragging_piece:
-                    drag_pos = event.pos
+                    drag_pos = mid_point
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                pos = event.pos
+                pos = mid_point
                 if event.button == 1 and dragging_piece:
                     square = pixel_to_square(pos)
                     sr, sc = drag_start
@@ -319,6 +320,7 @@ def main():
 
              # handtracking
         transformed_landmarks = camera_manager.get_transformed_landmarks()
+        pinching = False  # Tracks whether we are currently pinching
         if transformed_landmarks:
             for hand_landmarks in transformed_landmarks:
                 thumb_pos = (int(hand_landmarks[4][0]), int(hand_landmarks[4][1]))  # THUMB_TIP
@@ -332,6 +334,16 @@ def main():
                 if distance_between_fingers < 50:  # Threshold for starting a pinch
                     pygame.draw.circle(screen, BLUE, mid_point, 10)
                     time.sleep(.15)
+                    pygame.MOUSEBUTTONDOWN
+                    if not pinching:
+                        pinching = True
+                        pag.mouseDown()
+                        print("Pinch started – mouse down")
+                else:
+                    if pinching:
+                        pinching = False
+                        pag.mouseUp()
+                        print("Pinch released – mouse up")
         
         pygame.display.flip()
 
