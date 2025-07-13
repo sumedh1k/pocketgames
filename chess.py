@@ -2,19 +2,24 @@ import pygame
 import os
 import math
 import sys
+import time
+from camera_manager import CameraManager
 
 # Initialize Pygame
 pygame.init()
 
 # Constants
+camera_manager = CameraManager('./M.npy', 1920, 1080)
 dimensions = pygame.display.Info()
 # width, height = dimensions.current_w, dimensions.current_h #use for adjusting resolution
 width, height = 1920, 1080
 center_x, center_y = width // 2, height // 2
-BG_COLOR = (0, 0, 0)  # Black background
 TILE_SIZE = 100
 BOARD_ORIGIN = ((width-800) // 2, (height-800) // 2)  # Offset based on 800x800 px board and 1920x1080 resolution
+BG_COLOR = (0, 0, 0)  # Black background
 NEON_BLUE = (0,255,246)
+BLUE = (0,0,255)
+RED = (255,0,0)
 
 #fonts
 font = pygame.font.Font("Assets/Fonts/Orbitron-Medium.ttf", 35)
@@ -243,6 +248,9 @@ def main():
     running = True
     while running:
         
+        if not camera_manager.update():
+            continue
+
         screen.fill(BG_COLOR)
         draw_board()
         draw_pieces()
@@ -308,6 +316,24 @@ def main():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     running = False
+
+             # handtracking
+        transformed_landmarks = camera_manager.get_transformed_landmarks()
+        if transformed_landmarks:
+            for hand_landmarks in transformed_landmarks:
+                thumb_pos = (int(hand_landmarks[4][0]), int(hand_landmarks[4][1]))  # THUMB_TIP
+                index_pos = (int(hand_landmarks[8][0]), int(hand_landmarks[8][1]))  # INDEX_FINGER_TIP
+
+                mid_point = ((thumb_pos[0] + index_pos[0]) // 2, (thumb_pos[1] + index_pos[1]) // 2)
+                pygame.draw.circle(screen, RED, mid_point, 10, 3)
+                pygame.draw.circle(screen, BLUE, thumb_pos, 5)
+                pygame.draw.circle(screen, BLUE, index_pos, 5)
+                distance_between_fingers = distance(thumb_pos, index_pos)
+                if distance_between_fingers < 50:  # Threshold for starting a pinch
+                    pygame.draw.circle(screen, BLUE, mid_point, 10)
+                    time.sleep(.15)
+        
+        pygame.display.flip()
 
     pygame.quit()
     sys.exit()
