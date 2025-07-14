@@ -21,12 +21,13 @@ BG_COLOR = (0, 0, 0)  # Black background
 NEON_BLUE = (0,255,246)
 BLUE = (0,0,255)
 RED = (255,0,0)
+pinching = False  # Tracks whether we are currently pinching
 
 #fonts
 font = pygame.font.Font("Assets/Fonts/Orbitron-Medium.ttf", 35)
 
 # Create the screen
-screen = pygame.display.set_mode((width, height), pygame.NOFRAME) # noframe gets rid of screen resizing problem
+screen = pygame.display.set_mode((width, height), pygame.NOFRAME, display=0) # noframe gets rid of screen resizing problem
 pygame.display.set_caption('Chess')
 # os.environ['SDL_VIDEO_CENTERED'] = '1'  # centers window | delete for ubuntu
 
@@ -264,7 +265,7 @@ def main():
                 running = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                pos = mid_point
+                pos = event.pos
                 if event.button in (4, 5):
                     if 0 <= pos[0] < capture_box.get_width() and 140 <= pos[1] < 140 + capture_box.get_height():
                         if event.button == 4:
@@ -292,10 +293,10 @@ def main():
 
             elif event.type == pygame.MOUSEMOTION:
                 if dragging_piece:
-                    drag_pos = mid_point
+                    drag_pos = event.pos
 
             elif event.type == pygame.MOUSEBUTTONUP:
-                pos = mid_point
+                pos = event.pos
                 if event.button == 1 and dragging_piece:
                     square = pixel_to_square(pos)
                     sr, sc = drag_start
@@ -320,30 +321,43 @@ def main():
 
              # handtracking
         transformed_landmarks = camera_manager.get_transformed_landmarks()
-        pinching = False  # Tracks whether we are currently pinching
+        pinching = False
         if transformed_landmarks:
-            for hand_landmarks in transformed_landmarks:
-                thumb_pos = (int(hand_landmarks[4][0]), int(hand_landmarks[4][1]))  # THUMB_TIP
-                index_pos = (int(hand_landmarks[8][0]), int(hand_landmarks[8][1]))  # INDEX_FINGER_TIP
+            # Use the first detected hand for control
+            hand_landmarks = transformed_landmarks[0]
+            thumb_pos = (int(hand_landmarks[4][0]), int(hand_landmarks[4][1]))
+            index_pos = (int(hand_landmarks[8][0]), int(hand_landmarks[8][1]))
 
-                mid_point = ((thumb_pos[0] + index_pos[0]) // 2, (thumb_pos[1] + index_pos[1]) // 2)
-                pygame.draw.circle(screen, RED, mid_point, 10, 3)
-                pygame.draw.circle(screen, BLUE, thumb_pos, 5)
-                pygame.draw.circle(screen, BLUE, index_pos, 5)
-                distance_between_fingers = distance(thumb_pos, index_pos)
-                if distance_between_fingers < 50:  # Threshold for starting a pinch
-                    pygame.draw.circle(screen, BLUE, mid_point, 10)
-                    time.sleep(.15)
-                    pygame.MOUSEBUTTONDOWN
-                    if not pinching:
-                        pinching = True
-                        pag.mouseDown()
-                        print("Pinch started – mouse down")
-                else:
-                    if pinching:
-                        pinching = False
-                        pag.mouseUp()
-                        print("Pinch released – mouse up")
+            mid_point = ((thumb_pos[0] + index_pos[0]) // 2,
+                         (thumb_pos[1] + index_pos[1]) // 2)
+            
+            pygame.draw.circle(screen, RED, mid_point, 10, 3)
+            pygame.draw.circle(screen, BLUE, thumb_pos, 5)
+            pygame.draw.circle(screen, BLUE, index_pos, 5)
+
+            distance_between_fingers = distance(thumb_pos, index_pos)
+            if distance_between_fingers < 50:
+                pygame.draw.circle(screen, BLUE, mid_point, 10)
+                pygame.event.post(pygame.event.Event(
+                pygame.MOUSEBUTTONDOWN, {'button': 1, 'pos': mid_point}))
+                if not pinching:
+                    pinching = True
+                    pygame.event.post(pygame.event.Event(
+                    pygame.MOUSEMOTION, {'pos': mid_point}))
+            else:
+                if pinching:
+                    pygame.event.post(pygame.event.Event(
+                        pygame.MOUSEBUTTONUP, {'button': 1, 'pos': mid_point}))
+                    pinching = False
+
+            # if pinching:
+            #     pygame.event.post(pygame.event.Event(
+            #         pygame.MOUSEMOTION, {'pos': mid_point}))
+            # else:
+            #     if pinching:
+            #         pygame.event.post(pygame.event.Event(
+            #             pygame.MOUSEBUTTONUP, {'button': 1, 'pos': mid_point}))
+            #         pinching = False
         
         pygame.display.flip()
 

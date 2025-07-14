@@ -11,7 +11,7 @@ class CameraManager:
     def __init__(self, transformation_matrix_path, width, height):
         self.width = width
         self.height = height
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(2)
         self.M = np.load(transformation_matrix_path)
         
         # Initialize mediapipe
