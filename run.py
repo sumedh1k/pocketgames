@@ -11,7 +11,7 @@ hands = mp_hands.Hands(static_image_mode=False,
 
 mp_drawing = mp.solutions.drawing_utils
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("/dev/video0", cv2.CAP_V4L)
 
 # Read in M matrices
 M = np.load("M.npy")
