@@ -4,7 +4,6 @@ import math
 import sys
 import time
 from camera_manager import CameraManager
-import pyautogui as pag
 
 # Initialize Pygame
 pygame.init()
