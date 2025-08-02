@@ -5,12 +5,12 @@ import sys
 import time
 from camera_manager import CameraManager
 
+os.environ["SDL_VIDEODRIVER"] = "fbcon"
+os.environ["SDL_FBDEV"]      = "/dev/fb0"
+
 # Initialize Pygame
 pygame.init()
 pygame.display.init()
-
-os.environ["SDL_VIDEODRIVER"] = "fbcon"
-os.environ["SDL_FBDEV"]      = "/dev/fb0"
 
 
 # Constants
