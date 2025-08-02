@@ -7,6 +7,11 @@ from camera_manager import CameraManager
 
 # Initialize Pygame
 pygame.init()
+pygame.display.init()
+
+os.environ["SDL_VIDEODRIVER"] = "fbcon"
+os.environ["SDL_FBDEV"]      = "/dev/fb0"
+
 
 # Constants
 camera_manager = CameraManager('./M.npy', 1920, 1080)
@@ -26,7 +31,7 @@ pinching = False  # Tracks whether we are currently pinching
 font = pygame.font.Font("Assets/Fonts/Orbitron-Medium.ttf", 35)
 
 # Create the screen
-screen = pygame.display.set_mode((width, height), pygame.NOFRAME, display=0) # noframe gets rid of screen resizing problem
+screen = pygame.display.set_mode((width, height), pygame.NOFRAME) # noframe gets rid of screen resizing problem
 pygame.display.set_caption('Chess')
 # os.environ['SDL_VIDEO_CENTERED'] = '1'  # centers window | delete for ubuntu
 
