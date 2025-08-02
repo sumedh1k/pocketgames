@@ -7,6 +7,9 @@ import os
 import sys
 import math
 
+os.environ["SDL_VIDEODRIVER"] = "fbcon"
+os.environ["SDL_FBDEV"]      = "/dev/fb0"
+
 class CameraManager:
     def __init__(self, transformation_matrix_path, width, height):
         self.width = width
